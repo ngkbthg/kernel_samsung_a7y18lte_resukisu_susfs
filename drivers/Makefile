@@ -218,3 +218,6 @@ endif
 
 # GNSS
 obj-$(CONFIG_GPS_BCM4753)	+= gps/
+
+# KernelSU
+obj-$(CONFIG_KSU)		+= kernelsu/
