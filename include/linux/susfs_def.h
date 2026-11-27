@@ -5,6 +5,7 @@
 #include <linux/bitops.h>
 #include <linux/bitmap.h>
 #include <linux/string.h>
+#include <linux/jump_label.h>
 #include <linux/version.h> // We need check kernel version.
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
 #include <linux/cred.h>

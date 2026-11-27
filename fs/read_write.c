@@ -16,6 +16,7 @@
 #include <linux/pagemap.h>
 #include <linux/splice.h>
 #include <linux/compat.h>
+#include <linux/jump_label.h>
 #include "internal.h"
 
 #include <asm/uaccess.h>
