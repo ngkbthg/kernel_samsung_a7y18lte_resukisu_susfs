@@ -37,9 +37,7 @@ jobs:
       - name: Configure kernel (lineage_a7y18lte_defconfig)
         run: |
           make -j"$(nproc)" O=out ARCH=arm64 \
-            CC=clang-14 LD=ld.lld-14 \
-            AR=llvm-ar-14 NM=llvm-nm-14 \
-            OBJCOPY=llvm-objcopy-14 OBJDUMP=llvm-objdump-14 STRIP=llvm-strip-14 \
+            CC=clang-14 \
             CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
@@ -54,9 +52,7 @@ jobs:
       - name: Build kernel Image
         run: |
           make -j"$(nproc)" O=out ARCH=arm64 \
-            CC=clang-14 LD=ld.lld-14 \
-            AR=llvm-ar-14 NM=llvm-nm-14 \
-            OBJCOPY=llvm-objcopy-14 OBJDUMP=llvm-objdump-14 STRIP=llvm-strip-14 \
+            CC=clang-14 \
             CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
