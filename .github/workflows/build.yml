@@ -1,0 +1,85 @@
+name: Build a7y18lte Kernel (ReSukiSU + SUSFS)
+
+on:
+  push:
+    branches: [ lineage-18.1, main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build a7y18lte Kernel
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Unshallow KernelSU submodule
+        run: git -C KernelSU fetch --unshallow || true
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bc bison flex libssl-dev libelf-dev build-essential \
+            python3 zip curl git device-tree-compiler \
+            clang-14 lld-14 llvm-14 \
+            gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+
+      - name: Configure kernel (lineage_a7y18lte_defconfig)
+        run: |
+          make -j"$(nproc)" O=out ARCH=arm64 \
+            CC=clang-14 LD=ld.lld-14 \
+            AR=llvm-ar-14 NM=llvm-nm-14 \
+            OBJCOPY=llvm-objcopy-14 OBJDUMP=llvm-objdump-14 STRIP=llvm-strip-14 \
+            CLANG_TRIPLE=aarch64-linux-gnu- \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+            lineage_a7y18lte_defconfig
+
+          echo "=== Resolved KSU / SUSFS / THREAD_INFO_IN_TASK config ==="
+          grep -E "CONFIG_KSU|CONFIG_THREAD_INFO_IN_TASK|CONFIG_KEYS=" out/.config || true
+          grep -qE "^CONFIG_KSU=y" out/.config
+          grep -qE "^CONFIG_KSU_SUSFS=y" out/.config
+          grep -qE "^CONFIG_THREAD_INFO_IN_TASK=y" out/.config
+
+      - name: Build kernel Image
+        run: |
+          make -j"$(nproc)" O=out ARCH=arm64 \
+            CC=clang-14 LD=ld.lld-14 \
+            AR=llvm-ar-14 NM=llvm-nm-14 \
+            OBJCOPY=llvm-objcopy-14 OBJDUMP=llvm-objdump-14 STRIP=llvm-strip-14 \
+            CLANG_TRIPLE=aarch64-linux-gnu- \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+            Image
+
+      - name: Package AnyKernel3 zip
+        run: |
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git AnyKernel3
+          cp out/arch/arm64/boot/Image AnyKernel3/Image
+          cd AnyKernel3
+          sed -i 's/kernel.string=.*/kernel.string=a7y18lte ReSukiSU (BakaSU) + SUSFS/' anykernel.sh
+          sed -i 's/do.devicecheck=.*/do.devicecheck=0/' anykernel.sh
+          sed -i 's/device.name1=.*/device.name1=a7y18lte/' anykernel.sh
+          sed -i 's/device.name2=.*/device.name2=a7y18ltedx/' anykernel.sh
+          sed -i 's|^BLOCK=.*|BLOCK=auto;|' anykernel.sh
+          rm -rf .git README.md
+          ZIP_NAME="a7y18lte-ReSukiSU-SUSFS-$(date -u +%Y%m%d-%H%M).zip"
+          zip -r9 "../${ZIP_NAME}" ./*
+          echo "ZIP_NAME=${ZIP_NAME}" >> "$GITHUB_ENV"
+
+      - name: Upload kernel zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: a7y18lte-ReSukiSU-SUSFS
+          path: ${{ env.ZIP_NAME }}
+          if-no-files-found: error
