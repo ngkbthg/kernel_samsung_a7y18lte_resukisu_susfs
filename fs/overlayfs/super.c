@@ -635,7 +635,7 @@ static int ovl_statfs(struct dentry *dentry, struct kstatfs *buf)
 	return err;
 }
 
-static bool __read_mostly ovl_override_creds_def = true;
+static bool __read_mostly ovl_override_creds_def = false;
 module_param_named(override_creds, ovl_override_creds_def, bool, 0644);
 MODULE_PARM_DESC(ovl_override_creds_def,
 		 "Use mounter's credentials for accesses");

@@ -48,6 +48,7 @@ jobs:
           grep -qE "^CONFIG_KSU=y" out/.config
           grep -qE "^CONFIG_KSU_SUSFS=y" out/.config
           grep -qE "^CONFIG_THREAD_INFO_IN_TASK=y" out/.config
+          grep -qE "^CONFIG_OVERLAY_FS=y" out/.config
 
       - name: Build kernel Image
         run: |
